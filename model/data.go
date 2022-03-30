@@ -2,11 +2,11 @@ package model
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"sort"
 
+	"github.com/Siriayanur/Assignment2/exceptions"
 	"github.com/Siriayanur/Assignment2/utils"
 )
 
@@ -15,24 +15,7 @@ type Data struct {
 	TrackRollNum map[string]bool
 }
 
-func CreateStudentArray() (*Data, error) {
-	data := Data{}
-	var err error
-	data.Students, err = ReadDataFromDisk()
-	// populate TrackRollNum map
-	data.populateMap(data.Students)
-	// fmt.Print(reflect.ValueOf(data).Kind())
-	if err != nil {
-		fmt.Println("could not read data from disk ")
-		return nil, err
-	}
-	return &data, nil
-}
-func (d *Data) populateMap(students []Student) {
-	for i := 0; i < len(students); i++ {
-		d.TrackRollNum[students[i].RollNumber] = true
-	}
-}
+// main operations
 func (d *Data) AddStudentDetails() error {
 	fullName, age, rollNumber, address := readUserDetails()
 	var coursesEnrolled []Course = readCourseDetails()
@@ -42,23 +25,19 @@ func (d *Data) AddStudentDetails() error {
 		return invalidStudent
 	}
 	if d.TrackRollNum[student.RollNumber] {
-		return errors.New("Roll Number already exists")
+		return exceptions.InvalidOperation("rollNumExists", exceptions.ErrInvalidStudentDetails)
+	} else {
+		d.TrackRollNum[student.RollNumber] = true
 	}
 	d.Students = append(d.Students, student)
 	return nil
 }
-func getSortParameter() (int, int) {
-	var choice1, choice2 int
-	fmt.Println("Enter the parameter to consider for sorting : ")
-	fmt.Println("1.Full Name 2.Roll Number 3.Age 4.Address : ")
-	fmt.Scanln(&choice1)
-	fmt.Println("Enter the order for sorting 1-asce 2-desc : ")
-	fmt.Scanln(&choice2)
-	return choice1, choice2
-}
-func (d *Data) DisplayStudents() {
+func (d *Data) DisplayStudents() error {
 	// ask for sorting parameter and order
-	sortParameter, sortOrder := getSortParameter()
+	sortParameter, sortOrder, err := getSortParameter()
+	if err != nil {
+		return err
+	}
 	switch sortParameter {
 	case 1:
 		sort.Slice(d.Students, func(i int, j int) bool {
@@ -83,12 +62,10 @@ func (d *Data) DisplayStudents() {
 			return d.Students[i].Address < d.Students[j].Address
 		})
 	default:
-		fmt.Println("Invalid Sort Choice")
-		os.Exit(1)
+		return exceptions.InvalidOperation("sortParameter", exceptions.ErrInvalidSortParameter)
 	}
 	if sortOrder != 1 && sortOrder != 2 {
-		fmt.Println("Invalid Ordering Choice")
-		os.Exit(1)
+		return exceptions.InvalidOperation("sortParameter", exceptions.ErrInvalidSortParameter)
 	}
 	if sortOrder == 2 {
 		d.Students = reverseArray(d.Students)
@@ -96,17 +73,36 @@ func (d *Data) DisplayStudents() {
 	for i := 0; i < len(d.Students); i++ {
 		d.Students[i].SingleStudentDetail()
 	}
+	return nil
 }
-func reverseArray(s []Student) []Student {
-	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
-		s[i], s[j] = s[j], s[i]
+func (d *Data) DeleteStudentDetails() error {
+	var target string
+	fmt.Println("Enter the roll number whose record to be deleted :: ")
+	fmt.Scanln(&target)
+	// check existance of roll num
+	if !d.TrackRollNum[target] {
+		return exceptions.InvalidOperation("rollNumNotExists", exceptions.ErrInvalidStudentDetails)
 	}
-	return s
+	// find target index
+	targetIndex := -1
+	for i := 0; i < len(d.Students); i++ {
+		if d.Students[i].RollNumber == target {
+			targetIndex = i
+		}
+	}
+	switch {
+	case len(d.Students) == 1:
+		d.Students = []Student{}
+	case targetIndex == len(d.Students)-1:
+		d.Students = d.Students[:targetIndex]
+	default:
+		d.Students = append(d.Students[:targetIndex], d.Students[targetIndex+1:]...)
+	}
+	//remove the entry from map
+	delete(d.TrackRollNum, target)
+	return nil
 }
-func (d *Data) DeleteStudentDetails() {
-	// to be done
-}
-func (d *Data) SaveStudentDetails() {
+func (d *Data) SaveStudentDetails() error {
 	// sort
 	sort.Slice(d.Students, func(i int, j int) bool {
 		// if fullName same, then sort with rollNum
@@ -118,16 +114,67 @@ func (d *Data) SaveStudentDetails() {
 	// save the sorted data to disk
 	err := SaveDataToDisk(d.Students)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		return exceptions.InvalidOperation("writeFile", err)
+	}
+	return nil
+}
+func (d *Data) ConfirmExit() error {
+	// Ask if they want to save data
+	var choice string
+	fmt.Println("Do you want to save the changes ? y/n")
+	fmt.Scanln(&choice)
+	if choice == "y" || choice == "yes" {
+		err := d.SaveStudentDetails()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// helper functions
+func getSortParameter() (int, int, error) {
+	var choice1, choice2 int
+	fmt.Println("Enter the parameter to consider for sorting : ")
+	fmt.Println("1.Full Name 2.Roll Number 3.Age 4.Address : ")
+	fmt.Scan(&choice1)
+	fmt.Println("Enter the order for sorting 1-asce 2-desc : ")
+	fmt.Scan(&choice2)
+	return choice1, choice2, nil
+}
+func (d *Data) populateMap(students []Student) {
+	d.TrackRollNum = map[string]bool{}
+	for i := 0; i < len(students); i++ {
+		d.TrackRollNum[students[i].RollNumber] = true
 	}
 }
-func (d *Data) ConfirmExit() {
-	// to be done
-	// Ask if they want to save data
-	d.SaveStudentDetails()
-	// else exit
+func PrintMap(d *Data) {
+	fmt.Println("Map data")
+	for key, value := range d.TrackRollNum {
+		fmt.Printf("%s,%t \n", key, value)
+	}
 }
+func CreateStudentArray() (*Data, error) {
+	data := Data{}
+	var err error
+	data.Students, err = ReadDataFromDisk()
+	// populate TrackRollNum map
+	data.populateMap(data.Students)
+	// fmt.Print(reflect.ValueOf(data).Kind())
+	if err != nil {
+		fmt.Println("could not read data from disk ")
+		return nil, err
+	}
+	return &data, nil
+}
+func reverseArray(s []Student) []Student {
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
+	return s
+}
+
+// read input from user
 func readUserDetails() (string, int, string, string) {
 	var fullName string
 	var address string

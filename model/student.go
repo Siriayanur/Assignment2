@@ -15,11 +15,11 @@ type Student struct {
 }
 
 func (s Student) SingleStudentDetail() {
-	fmt.Println("\\ Student Details \\")
-	fmt.Printf("Full Name : %s | Age : %d | Roll Number : %s ", s.FullName, s.Age, s.RollNumber)
-	fmt.Println("\\ Courses enrolled \\")
+	fmt.Println("| Student Details |")
+	fmt.Printf("Full Name : %s | Age : %d | Roll Number : %s \n", s.FullName, s.Age, s.RollNumber)
+	fmt.Println("| Courses enrolled |")
 	for i := 0; i < len(s.CourseEnrolled); i++ {
-		fmt.Printf("Course Name :: %s, Course Code :: %s", s.CourseEnrolled[i].name, s.CourseEnrolled[i].code)
+		fmt.Printf("Course Name :: %s, Course Code :: %s\n", s.CourseEnrolled[i].name, s.CourseEnrolled[i].code)
 	}
 }
 func (s Student) ValidateStudentDetails() error {
