@@ -18,14 +18,13 @@ type Data struct {
 func CreateStudentArray() (*Data, error) {
 	data := Data{}
 	var err error
-
-	// var data []Student
 	data.Students, err = ReadDataFromDisk()
 	// populate TrackRollNum map
 	data.populateMap(data.Students)
 	// fmt.Print(reflect.ValueOf(data).Kind())
 	if err != nil {
-		fmt.Println("no error")
+		fmt.Println("could not read data from disk ")
+		return nil, err
 	}
 	return &data, nil
 }
@@ -35,7 +34,6 @@ func (d *Data) populateMap(students []Student) {
 	}
 }
 func (d *Data) AddStudentDetails() error {
-
 	fullName, age, rollNumber, address := readUserDetails()
 	var coursesEnrolled []Course = readCourseDetails()
 	student := Student{FullName: fullName, Address: address, Age: age, RollNumber: rollNumber, CourseEnrolled: coursesEnrolled}
@@ -106,7 +104,7 @@ func reverseArray(s []Student) []Student {
 	return s
 }
 func (d *Data) DeleteStudentDetails() {
-
+	// to be done
 }
 func (d *Data) SaveStudentDetails() {
 	// sort
@@ -125,9 +123,10 @@ func (d *Data) SaveStudentDetails() {
 	}
 }
 func (d *Data) ConfirmExit() {
+	// to be done
 	// Ask if they want to save data
 	d.SaveStudentDetails()
-	// else discard or exit
+	// else exit
 }
 func readUserDetails() (string, int, string, string) {
 	var fullName string
