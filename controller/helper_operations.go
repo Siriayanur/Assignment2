@@ -25,12 +25,6 @@ func (d *Data) populateMap(students []model.Student) {
 		d.TrackRollNum[students[i].RollNumber] = true
 	}
 }
-func PrintMap(d *Data) {
-	fmt.Println("Map data")
-	for key, value := range d.TrackRollNum {
-		fmt.Printf("%s,%t \n", key, value)
-	}
-}
 func CreateStudentArray() (*Data, error) {
 	data := Data{}
 	var err error
@@ -77,7 +71,7 @@ func readCourseDetails() []model.Course {
 
 	var coursesEnrolled []model.Course
 	isEnrolled := []int{0, 0, 0, 0, 0, 0}
-	var count = 0
+	count := 0
 	for {
 		fmt.Println("Enter course number :: ")
 		var courseIndex int

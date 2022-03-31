@@ -1,6 +1,10 @@
 package model
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func TestStudentDetailsValidationHappyFlow(t *testing.T) {
 	var courseEnrolled []Course
@@ -23,9 +27,7 @@ func TestStudentDetailsValidationHappyFlow(t *testing.T) {
 	for _, student := range testStudents {
 		st := Student{FullName: student.fullName, RollNumber: student.rollNumber, Age: student.age, Address: student.address, CourseEnrolled: student.courseEnrolled}
 		invalidStudent := st.ValidateStudentDetails()
-		if invalidStudent != nil {
-			t.Errorf("Incorrect Student details :: %s", invalidStudent.Error())
-		}
+		require.Nil(t, invalidStudent)
 	}
 }
 
@@ -50,8 +52,6 @@ func TestStudentDetailsValidationSadFlow(t *testing.T) {
 	for _, student := range testStudents {
 		st := Student{FullName: student.fullName, RollNumber: student.rollNumber, Age: student.age, Address: student.address, CourseEnrolled: student.courseEnrolled}
 		invalidStudent := st.ValidateStudentDetails()
-		if invalidStudent == nil {
-			t.Errorf("Incorrect Student details")
-		}
+		require.NotNil(t, invalidStudent)
 	}
 }

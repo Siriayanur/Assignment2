@@ -1,24 +1,22 @@
 package controller
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func TestCheckValidFileHappyFlow(t *testing.T) {
-	fileName := "operations.go"
+	fileName := "main_operations.go"
 	isValid := checkValidFile(fileName)
-	if !isValid {
-		t.Errorf("File doesn't exist,expected %t, got %t", true, isValid)
-	}
+	require.Equal(t, isValid, true)
 }
 func TestCheckValidFileBadFlow(t *testing.T) {
 	fileName := "random.json"
 	isValid := checkValidFile(fileName)
-	if isValid {
-		t.Errorf("File exists,expected %t, got %t", true, isValid)
-	}
+	require.Equal(t, isValid, false)
 }
 func TestCreateFileHappyFlow(t *testing.T) {
 	filePointer, _ := createFile()
-	if filePointer == nil {
-		t.Errorf("Could not create file, expected valid new file pointer, got nil")
-	}
+	require.NotNil(t, filePointer)
 }

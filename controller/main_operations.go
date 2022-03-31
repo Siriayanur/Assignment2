@@ -16,7 +16,7 @@ type Data struct {
 // main operations.
 func (d *Data) AddStudentDetails() error {
 	fullName, age, rollNumber, address := readUserDetails()
-	var coursesEnrolled = readCourseDetails()
+	coursesEnrolled := readCourseDetails()
 	student := model.Student{FullName: fullName, Age: age, RollNumber: rollNumber, Address: address, CourseEnrolled: coursesEnrolled}
 	ErrInvalidStudent := student.ValidateStudentDetails()
 	if ErrInvalidStudent != nil {
