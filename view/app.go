@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Siriayanur/Assignment2/controller"
 	"github.com/Siriayanur/Assignment2/exceptions"
-	"github.com/Siriayanur/Assignment2/model"
 )
 
 func RunApp() {
 	var choice int
-	data, err := model.CreateStudentArray()
+	data, err := controller.CreateStudentArray()
 	exceptions.CreateErrorStatements()
 	if err != nil {
 		fmt.Println(err)
@@ -25,30 +25,26 @@ func RunApp() {
 			err := data.AddStudentDetails()
 			if err != nil {
 				fmt.Println(err)
-				os.Exit(1)
 			}
-			break
 		case 2:
 			err := data.DisplayStudents()
 			if err != nil {
 				fmt.Println(err)
-				os.Exit(1)
 			}
-			break
 		case 3:
 			err := data.DeleteStudentDetails()
 			if err != nil {
 				fmt.Println(err)
-				os.Exit(1)
+			} else {
+				fmt.Println("User deleted successfully..")
 			}
-			break
 		case 4:
 			err := data.SaveStudentDetails()
 			if err != nil {
 				fmt.Println(err)
-				os.Exit(1)
+			} else {
+				fmt.Println("All changes saved..")
 			}
-			break
 		case 5:
 			err := data.ConfirmExit()
 			if err != nil {

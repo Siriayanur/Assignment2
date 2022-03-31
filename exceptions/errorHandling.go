@@ -7,10 +7,10 @@ import (
 
 var ErrMap = make(map[string]string)
 
-var ErrInvalidFileOperation = errors.New("File Error ")
-var ErrInvalidStudentDetails = errors.New("Student Details Error ")
-var ErrInvalidInput = errors.New("Invalid Input ")
-var ErrInvalidSortParameter = errors.New("Invalid Sort Parameter ")
+var ErrInvalidFileOperation = errors.New("file Error ")
+var ErrInvalidStudentDetails = errors.New("student Details Error ")
+var ErrInvalidInput = errors.New("invalid Input ")
+var ErrInvalidSortParameter = errors.New("invalid Sort Parameter ")
 
 func CreateErrorStatements() {
 	ErrMap["createFile"] = " cannot create file with the file name "

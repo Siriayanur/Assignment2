@@ -1,18 +1,21 @@
-package model
+package controller
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 
+	"github.com/Siriayanur/Assignment2/exceptions"
+	"github.com/Siriayanur/Assignment2/model"
 	"github.com/Siriayanur/Assignment2/utils"
 )
 
 func checkValidFile(fileName string) bool {
 	_, err := os.Stat(fileName)
 	if err != nil {
-		return false
+		if os.IsNotExist(err) {
+			return false
+		}
 	}
 	return true
 }
@@ -21,10 +24,7 @@ func createFile() (*os.File, error) {
 	if checkValidFile(utils.FileName) {
 		err := os.Remove(utils.FileName)
 		if err != nil {
-			srr, ok := err.(*os.PathError)
-			fmt.Println(srr)
-			fmt.Println(ok)
-			return nil, srr
+			return nil, exceptions.InvalidOperation("removeFile", exceptions.ErrInvalidFileOperation)
 		}
 	}
 	// create new file with same name
@@ -34,7 +34,7 @@ func createFile() (*os.File, error) {
 	}
 	return filePointer, nil
 }
-func ReadDataFromDisk() ([]Student, error) {
+func ReadDataFromDisk() ([]model.Student, error) {
 	if !checkValidFile(utils.FileName) {
 		// create new file to store the data
 		_, err := createFile()
@@ -52,18 +52,19 @@ func ReadDataFromDisk() ([]Student, error) {
 		return nil, err
 	}
 	if len(studentDataRaw) == 0 {
-		var emptyData []Student
+		var emptyData []model.Student
 		return emptyData, nil
 	}
 
-	var studentDataMarshal []Student
+	var studentDataMarshal []model.Student
+	// fmt.Println("data from file : ", studentDataRaw)
 	err = json.Unmarshal(studentDataRaw, &studentDataMarshal)
 	if err != nil {
 		return nil, err
 	}
 	return studentDataMarshal, nil
 }
-func SaveDataToDisk(students []Student) error {
+func SaveDataToDisk(students []model.Student) error {
 	// convert to json
 	marshalData, err := json.Marshal(students)
 	if err != nil {
