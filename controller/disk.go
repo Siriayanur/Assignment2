@@ -1,7 +1,13 @@
 package controller
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/md5"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"os"
 
@@ -10,6 +16,42 @@ import (
 	"github.com/Siriayanur/Assignment2/utils"
 )
 
+func createHash(key string) string {
+	hasher := md5.New()
+	hasher.Write([]byte(key))
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+func encrypt(data []byte, passphrase string) []byte {
+	block, _ := aes.NewCipher([]byte(createHash(passphrase)))
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		panic(err.Error())
+	}
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+		panic(err.Error())
+	}
+	ciphertext := gcm.Seal(nonce, nonce, data, nil)
+	return ciphertext
+}
+func decrypt(data []byte, passphrase string) []byte {
+	key := []byte(createHash(passphrase))
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err.Error())
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		panic(err.Error())
+	}
+	nonceSize := gcm.NonceSize()
+	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
+	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		panic(err.Error())
+	}
+	return plaintext
+}
 func checkValidFile(fileName string) bool {
 	_, err := os.Stat(fileName)
 	if err != nil {
@@ -47,18 +89,19 @@ func ReadDataFromDisk() ([]model.Student, error) {
 		return nil, err
 	}
 	defer openFile.Close()
-	studentDataRaw, err := ioutil.ReadAll(openFile)
+	ciphertext, err := ioutil.ReadAll(openFile)
 	if err != nil {
 		return nil, err
 	}
-	if len(studentDataRaw) == 0 {
+	if len(ciphertext) == 0 {
 		var emptyData []model.Student
 		return emptyData, nil
 	}
-
+	// decrypt the data before displaying
+	plaintext := decrypt(ciphertext, secrete_code)
 	var studentDataMarshal []model.Student
 	// fmt.Println("data from file : ", studentDataRaw)
-	err = json.Unmarshal(studentDataRaw, &studentDataMarshal)
+	err = json.Unmarshal(plaintext, &studentDataMarshal)
 	if err != nil {
 		return nil, err
 	}
@@ -70,13 +113,15 @@ func SaveDataToDisk(students []model.Student) error {
 	if err != nil {
 		return err
 	}
+	// encrypt the marshalData before storing
+	ciphertext := encrypt([]byte(marshalData), secrete_code)
 	// overwrite the data --> delete old file,create new file with the current data
 	filePointer, err := createFile()
 	if err != nil {
 		return err
 	}
 	defer filePointer.Close()
-	_, err = filePointer.Write(marshalData)
+	_, err = filePointer.Write(ciphertext)
 	if err != nil {
 		return err
 	}
