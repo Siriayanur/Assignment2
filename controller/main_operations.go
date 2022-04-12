@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"fmt"
 	"sort"
 
+	"github.com/Siriayanur/Assignment2/controller/disk"
 	"github.com/Siriayanur/Assignment2/exceptions"
 	"github.com/Siriayanur/Assignment2/model"
 )
@@ -13,10 +13,16 @@ type Data struct {
 	TrackRollNum map[string]bool
 }
 
+// populate map for the current run.
+func (d *Data) populateMap(students []model.Student) {
+	d.TrackRollNum = map[string]bool{}
+	for i := 0; i < len(students); i++ {
+		d.TrackRollNum[students[i].RollNumber] = true
+	}
+}
+
 // main operations.
-func (d *Data) AddStudentDetails() error {
-	fullName, age, rollNumber, address := readUserDetails()
-	coursesEnrolled := readCourseDetails()
+func (d *Data) AddStudent(fullName string, age int, rollNumber string, address string, coursesEnrolled []model.Course) error {
 	student := model.Student{FullName: fullName, Age: age, RollNumber: rollNumber, Address: address, CourseEnrolled: coursesEnrolled}
 	ErrInvalidStudent := student.ValidateStudentDetails()
 	if ErrInvalidStudent != nil {
@@ -29,7 +35,7 @@ func (d *Data) AddStudentDetails() error {
 	d.Students = append(d.Students, student)
 	return nil
 }
-func (d *Data) DisplayStudentsHelper(sortParameter int, sortOrder int) error {
+func (d *Data) DisplayStudents(sortParameter int, sortOrder int) error {
 	if sortOrder != 1 && sortOrder != 2 {
 		return exceptions.InvalidOperation("sortParameter", exceptions.ErrInvalidSortParameter)
 	}
@@ -64,19 +70,8 @@ func (d *Data) DisplayStudentsHelper(sortParameter int, sortOrder int) error {
 	}
 	return nil
 }
-func (d *Data) DisplayStudents() error {
-	// ask for sorting parameter and order
-	sortParameter, sortOrder := getSortParameter()
-	err := d.DisplayStudentsHelper(sortParameter, sortOrder)
-	if err != nil {
-		return err
-	}
-	for i := 0; i < len(d.Students); i++ {
-		d.Students[i].SingleStudentDetail()
-	}
-	return nil
-}
-func (d *Data) DeleteStudentDetailsHelper(target string) error {
+
+func (d *Data) DeleteStudent(target string) error {
 	// check existence of roll num
 	if !d.TrackRollNum[target] {
 		return exceptions.InvalidOperation("rollNumNotExists", exceptions.ErrInvalidStudentDetails)
@@ -98,19 +93,7 @@ func (d *Data) DeleteStudentDetailsHelper(target string) error {
 	}
 	return nil
 }
-func (d *Data) DeleteStudentDetails() error {
-	var target string
-	fmt.Println("Enter the roll number whose record to be deleted :: ")
-	fmt.Scanln(&target)
-	err := d.DeleteStudentDetailsHelper(target)
-	if err != nil {
-		return err
-	}
-	// remove the entry from map.
-	delete(d.TrackRollNum, target)
-	return nil
-}
-func (d *Data) SaveStudentDetails() error {
+func (d *Data) SaveStudent() error {
 	// sort
 	sort.Slice(d.Students, func(i int, j int) bool {
 		// if fullName same, then sort with rollNum
@@ -120,22 +103,9 @@ func (d *Data) SaveStudentDetails() error {
 		return d.Students[i].FullName < d.Students[j].FullName
 	})
 	// save the sorted data to disk
-	err := SaveDataToDisk(d.Students)
+	err := disk.SaveDataToDisk(d.Students)
 	if err != nil {
 		return exceptions.InvalidOperation("writeFile", err)
-	}
-	return nil
-}
-func (d *Data) ConfirmExit() error {
-	// Ask if they want to save data
-	var choice string
-	fmt.Println("Do you want to save the changes ? y/n")
-	fmt.Scanln(&choice)
-	if choice == "y" || choice == "yes" {
-		err := d.SaveStudentDetails()
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }

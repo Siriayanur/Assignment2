@@ -1,1 +1,4 @@
-controller/secret_key.go
+controller/disk/secret_key.go
+.vscode
+studentData.json
+.golangci.yaml

@@ -3,6 +3,7 @@ package controller
 import (
 	"testing"
 
+	"github.com/Siriayanur/Assignment2/controller/disk"
 	"github.com/Siriayanur/Assignment2/model"
 	"github.com/stretchr/testify/require"
 )
@@ -36,23 +37,23 @@ func GenerateTestData() *Data {
 func TestDisplayStudentHappyFlow(t *testing.T) {
 	data := GenerateTestData()
 	// sort by full name, asc
-	err := data.DisplayStudentsHelper(1, 1)
+	err := data.DisplayStudents(1, 1)
 	require.Equal(t, StudentsOrderByFullName(data.Students), true)
 	require.Nil(t, err)
 	// sort by age, asc
-	err0 := data.DisplayStudentsHelper(3, 1)
+	err0 := data.DisplayStudents(3, 1)
 	require.Equal(t, StudentsOrderByAge(data.Students), true)
 	require.Nil(t, err0)
 	// sort by address, asc
-	err1 := data.DisplayStudentsHelper(4, 1)
+	err1 := data.DisplayStudents(4, 1)
 	require.Equal(t, StudentsOrderByAddress(data.Students), true)
 	require.Nil(t, err1)
 	// sort by rollNumber, asc
-	err2 := data.DisplayStudentsHelper(2, 1)
+	err2 := data.DisplayStudents(2, 1)
 	require.Equal(t, StudentsOrderByRollNumber(data.Students), true)
 	require.Nil(t, err2)
 	// sort by rollNumber, desc
-	err3 := data.DisplayStudentsHelper(2, 2)
+	err3 := data.DisplayStudents(2, 2)
 	require.Equal(t, StudentsOrderByRollNumberDesc(data.Students), true)
 	require.Nil(t, err3)
 }
@@ -99,20 +100,20 @@ func StudentsOrderByAddress(students []model.Student) bool {
 func TestDeleteStudentDetailsHappyFlow(t *testing.T) {
 	data := GenerateTestData()
 	target := "123"
-	err := data.DeleteStudentDetailsHelper(target)
+	err := data.DeleteStudent(target)
 	require.Nil(t, err)
 }
 func TestDeleteStudentDetailsBadFlow(t *testing.T) {
 	data := GenerateTestData()
 	target := "1"
-	err := data.DeleteStudentDetailsHelper(target)
+	err := data.DeleteStudent(target)
 	require.NotNil(t, err)
 }
 func TestSaveAndRetrieve(t *testing.T) {
 	data := GenerateTestData()
-	err := data.SaveStudentDetails()
+	err := data.SaveStudent()
 	require.Nil(t, err)
-	readData, err := ReadDataFromDisk()
+	readData, err := disk.ReadDataFromDisk()
 	require.Nil(t, err)
 	require.Equal(t, len(readData), len(data.Students))
 
